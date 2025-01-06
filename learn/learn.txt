@@ -1,0 +1,62 @@
+Thông tin về SQLite và sqlite3 của nodejs.
+
+Kiểu dữ liệu:
+    NULL: ánh xạ thành `null`.
+    INTEGER: ánh xạ thành `number`.
+    REAL: ánh xạ thành `number`.
+    TEXT: ánh xạ thành `string`.
+    BLOB: ánh xạ thành `Buffer`.
+
+Join bảng:
+    INNER JOIN
+    LEFT JOIN (LEFT OUTER JOIN)
+    CROSS JOIN (*không có điều kiện ON)
+    Không hỗ trợ trực tiếp RIGHT JOIN (LEFT OUTER JOIN) & FULL JOIN (FULL OUTER JOIN) 
+        (vì có giải pháp viết truy vấn thay thế, không thực sự cần thiết 2 loại JOIN trên)
+
+Toán tử tập hợp:
+    UNION: Kết hợp các kết quả từ hai hoặc nhiều câu truy vấn và loại bỏ các bản ghi trùng lặp.
+    UNION ALL: Kết hợp các kết quả từ hai hoặc nhiều câu truy vấn và giữ nguyên tất cả các bản ghi, kể cả bản ghi trùng lặp.
+    INTERSECT: Trả về các bản ghi có mặt trong cả hai tập hợp kết quả và loại bỏ các bản ghi trùng lặp.
+    EXCEPT: Trả về các bản ghi chỉ có trong tập hợp kết quả đầu tiên nhưng không có trong tập hợp thứ hai và loại bỏ các bản ghi trùng lặp.
+
+Column definition:
+    Tên cột
+    Kiểu dữ liệu: NULL, INTEGER, REAL, TEXT, BLOB
+    Ràng buộc:
+        NOT NULL
+        UNIQUE
+        PRIMARY KEY *Nếu không chỉ định rõ, SQLite sẽ sử dụng cột ROWID làm khóa chính mặc định.
+            AUTOINCREMENT (chỉ với type INTEGER)
+            PRIMARY KEY phức hợp, ví dụ PRIMARY KEY (user_id, product_id)
+        CHECK
+        FOREIGN KEY
+            REFERENCE
+            ON UPDATE/DELETE: CASCADE, SET NULL, NO ACTION, RESTRICT (mặc định)
+        COLLATE (BINARY, NOCASE, hoặc RTRIM)
+    DEFAULT: giá trị mặc định (chuỗi, số, NULL hoặc hàm đặc biệt: CURRENT_TIMESTAMP, CURRENT_DATE, CURRENT_TIME)
+
+Tùy chọn khi tạo bảng:
+    WITHOUT ROWID
+
+Query:
+    `
+        SELECT [DISTINCT] column1, column2, ... 
+        FROM table_name 
+        [WHERE condition] 
+        [GROUP BY column1, column2, ...] 
+        [HAVING condition] 
+        [ORDER BY column1 [ASC|DESC], column2 [ASC|DESC], ...] 
+        [LIMIT count [OFFSET offset]];
+    `
+    DISTINCT: Loại bỏ các bản ghi trùng lặp.
+    WHERE: Điều kiện lọc bản ghi.
+    GROUP BY: Gom nhóm dữ liệu theo cột.
+    HAVING: Điều kiện áp dụng cho các nhóm dữ liệu.
+    ORDER BY: Sắp xếp bản ghi theo thứ tự.
+    LIMIT: Giới hạn số lượng bản ghi.
+    OFFSET: Bỏ qua một số lượng bản ghi đầu tiên.
+    Hàm đặc biệt: COUNT(*), AVG/SUM/MIN/MAX(columnName), SUBSTR(columnName, start, end)
+
+DML:
+    INSERT, UPDATE, DELETE
