@@ -6,14 +6,16 @@ const users = new typedSqlite.Table(1, 'users', {
     email: { type: "TEXT", unique: true },
 });
 
-const posts= new typedSqlite.Table(1, "posts", {
+const posts = new typedSqlite.Table(1, "posts", {
     id: { type: "INTEGER", primaryKey: true },
-    owner: { type: "INTEGER", foreignKey: {
-        reference: {
-            table: 'users',
-            column: 'id'
+    owner: {
+        type: "INTEGER", foreignKey: {
+            reference: {
+                table: 'users',
+                column: 'id'
+            }
         }
-    }}
+    }
 });
 
 const db = new typedSqlite.Database(users, posts);

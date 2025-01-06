@@ -54,19 +54,19 @@ type ResolveColumnType<Column extends ColumnDefinition> = Column extends { type:
     ? TypeMappingMap<T>
     : never;
 
-class Table<Name extends string, Columns extends Record<string, ColumnDefinition>> {
-    /**Phiên bản schema của bảng, quyết định xem cơ sở dữ liệu nên được cập nhật lại hay không */
+export class Table<Name extends string, Columns extends Record<string, ColumnDefinition>> {
+    /**Phiên bản schema của bảng, quyết định xem cơ sở dữ liệu nên được reset hay không */
     version: number;
 
     /**Tên bảng */
-    private _name: Name;
+    name: Name;
 
     /**Các cột của bảng */
     private _columns: Columns;
 
     /**
      * Khởi tạo instance Table, dùng làm cơ sở cho database
-     * @param version - Phiên bản schema, dự kiến khi thay đổi version, reset toàn bộ database
+     * @param version - Phiên bản schema, khi thay đổi version, reset toàn bộ database
      * @param name - Tên bảng
      * @param columns - Các cột của bảng
      */
@@ -95,10 +95,10 @@ class Table<Name extends string, Columns extends Record<string, ColumnDefinition
     }>
 }
 
-class Database<Tables extends Table<any, any>[]> {
+export class Database<Tables extends Table<any, any>[]> {
     /** Tất cả các bảng */
     tables: {
-        [K in Tables[number]as K["_name"]]: K;
+        [K in Tables[number]as K["name"]]: K;
     };
 
     /**
@@ -124,9 +124,4 @@ class Database<Tables extends Table<any, any>[]> {
 
     /** Lấy về bảng theo tên */
     getTable<Name extends keyof this["tables"]>(name: Name): this["tables"][Name]
-}
-
-export default {
-    Table,
-    Database,
 }
