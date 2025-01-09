@@ -143,7 +143,7 @@ export class QueryBuilder<
     /**
      * Hàm select với hỗ trợ `*`, `COUNT(*)`, và các hàm SQL
      * @param keys Các cột cần select hoặc hàm SQL áp dụng trên cột
-     * @returns Mảng 2 chiều với các giá trị được chọn
+     * @returns Mảng với mỗi phần tử là object với các thuộc tính đại diện cho các cột được chọn
      */
     select<
         SelectedKeys extends (
