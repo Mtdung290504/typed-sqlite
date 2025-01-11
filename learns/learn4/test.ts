@@ -1,4 +1,4 @@
-import { Database, DefaultValue, Table } from "./typed-sqlite";
+import { Database, Table } from "./typed-sqlite";
 
 const users = new Table({ version: 1, name: "users" }, {
     id: { type: "INTEGER", primaryKey: true },
@@ -19,7 +19,7 @@ const posts = new Table({ version: 1, name: 'posts' }, {
             onUpdate: 'SET NULL',
         }
     }
-}, { createIfNotExist: true });
+}, { createIfNotExist: true, withoutRowId: true });
 
 const postImages = new Table({ version: 1, name: 'postImages' }, {
     id: { type: 'INTEGER', primaryKey: true, autoIncrement: true },
@@ -37,20 +37,19 @@ const postImages = new Table({ version: 1, name: 'postImages' }, {
 const database = new Database([users, posts, postImages]);
 
 const test = await database
-    .from('users')
+    .queryFrom('users')
     .innerJoin('posts', '')
-    // .innerJoin('postImages', '')
+    .innerJoin('postImages', '')
     .select(
         'AVG(users.salary) AS avgSalary',
         'users.name AS name',
-        'posts.ownerId'
-        // 'postImages.path',
-        // 'COUNT(postImages.path) AS numberOfImages',
-        // 'posts.ownerId',
+        'posts.ownerId',
+        'postImages.path',
+        'COUNT(postImages.path) AS numberOfImages'
         // '*'
     )
     // .groupBy('avgSalary')
-    .orderBy('posts.ownerId ASC', 'name DESC')
+    .orderBy('posts.ownerId ASC')
     .execute();
 
     test.forEach(row => {
@@ -58,7 +57,7 @@ const test = await database
     })
 
 const rows1 = await database
-    .from("users")
+    .queryFrom("users")
     .select(
         "users.id AS UID",
         "users.salary",
@@ -67,7 +66,7 @@ const rows1 = await database
     .execute();
 
 const rows2 = await database
-    .from("users")
+    .queryFrom("users")
     .innerJoin('posts', '')
     .select(
         "users.id",
@@ -78,12 +77,12 @@ const rows2 = await database
     .execute();
 
 const rows3 = await database
-    .from("users")
+    .queryFrom("users")
     .select("MAX(users.salary) AS maxSalary", "COUNT(*) AS totalCount")
     .execute();
 
 const rows4 = await database
-    .from("users")
+    .queryFrom("users")
     .innerJoin('posts', "users.id = posts.ownerId")
     .select('*')
     .execute()

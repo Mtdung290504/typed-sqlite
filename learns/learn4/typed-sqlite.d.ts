@@ -27,16 +27,22 @@ type ForeignKey = {
 }
 
 type ColumnDefinition = {
-    type: Types
-    notNull?: boolean | undefined
-    unique?: boolean | undefined
-    primaryKey?: boolean | undefined
-    autoIncrement?: boolean | undefined
-    check?: string | undefined
-    collate?: CollateOptions | undefined
-    foreignKey?: ForeignKey | undefined
-    defaultValue?: DefaultValue
+    type: Types,
+    notNull?: boolean;
+    unique?: boolean;
+    primaryKey?: boolean;
+    check?: string;
+    collate?: CollateOptions;
+    foreignKey?: ForeignKey;
+    defaultValue?: DefaultValue;
 }
+
+/**Kiểm tra xem Columns có cột nào là primaryKey hay không */
+type HasPrimaryKey<Columns> = keyof {
+    [K in keyof Columns as Columns[K] extends { primaryKey: true } ? K : never]: true;
+} extends never
+    ? false
+    : true;
 
 export class Table<Name extends string, Columns extends Record<string, ColumnDefinition>> {
     /**Phiên bản schema của bảng, quyết định xem cơ sở dữ liệu nên được reset hay không */
@@ -54,7 +60,13 @@ export class Table<Name extends string, Columns extends Record<string, ColumnDef
      * @param columns - Định nghĩa các cột của bảng
      * @param createOptions - Tùy chọn tạo bảng, gồm createIfNotExist
      */
-    constructor(metadata: { version: number, name: Name }, columns: Columns, createOptions?: { createIfNotExist?: boolean })
+    constructor(
+        metadata: { version: number, name: Name },
+        columns: Columns,
+        createOptions?: HasPrimaryKey<Columns> extends true
+            ? { createIfNotExist?: true | undefined; withoutRowId?: true | undefined }
+            : { createIfNotExist?: true | undefined }
+    )
 }
 
 export class Database<Tables extends Table<any, any>[]> {
@@ -76,7 +88,7 @@ export class Database<Tables extends Table<any, any>[]> {
      * @param filename - Đường dẫn đến file .db
      * @param callback - Callback gọi khi có lỗi xảy ra trong quá trình tạo Database
      */
-    createDatabase(filename: string, callback?: (err: Error | null) => void): typeof this
+    createDatabase(filename: string, callback?: (err: Error | null) => void): this
 
     /**
      * Khởi tạo database `sqlite3`
@@ -84,17 +96,17 @@ export class Database<Tables extends Table<any, any>[]> {
      * @param mode - Chế độ mở của database `sqlite3`
      * @param callback - Callback gọi khi có lỗi xảy ra trong quá trình tạo Database
      */
-    createDatabase(filename: string, mode?: number, callback?: (err: Error | null) => void): typeof this
+    createDatabase(filename: string, mode?: number, callback?: (err: Error | null) => void): this
 
     /**
      * Tạo một QueryBuilder từ tên bảng
      * @param tableName Tên bảng
      * @returns QueryBuilder cho bảng đó
      */
-    from<Name extends Tables[number]["name"]>(
+    queryFrom<Name extends Tables[number]["name"]>(
         tableName: Name
     ): Name extends keyof this["tables"]
-        ? QueryBuilder<
+        ? Query<
             this, Name & string,
             this["tables"][Name] extends Table<any, infer Columns> ? Columns : never
         >
@@ -124,8 +136,6 @@ export class Database<Tables extends Table<any, any>[]> {
      */
     executeRawUpdate(sql: string, params: any[]): any
 }
-
-/**Query builders ------------------------------------------------------------------------------------------------------------ */
 
 /**Map ánh xạ kiểu dữ liệu SQLite về JS */
 type TypeMappingMap<T extends Types> = {
@@ -199,7 +209,7 @@ type MergeJoinedTables<Tables extends Record<string, Record<string, ColumnDefini
 }[keyof Tables]>;
 
 /** Lớp QueryBuilder */
-export class QueryBuilder<
+export class Query<
     DB extends Database<any>,
     Name extends string,
     Columns extends Record<string, ColumnDefinition>,
@@ -239,7 +249,7 @@ export class QueryBuilder<
     innerJoin<TableName extends keyof DB["tables"] & string>(
         tableName: TableName,
         on: string
-    ): QueryBuilder<
+    ): Query<
         DB, Name, Columns, SelectedKeys, JoinedTables & {
             [K in TableName]: DB["tables"][K] extends Table<any, infer Columns>
             ? Columns
@@ -256,7 +266,7 @@ export class QueryBuilder<
     leftJoin<TableName extends keyof DB["tables"] & string>(
         tableName: TableName,
         on: string
-    ): QueryBuilder<
+    ): Query<
         DB, Name, Columns, SelectedKeys, JoinedTables & {
             [K in TableName]: DB["tables"][K] extends Table<any, infer Columns>
             ? Columns
@@ -271,7 +281,7 @@ export class QueryBuilder<
      */
     crossJoin<TableName extends keyof DB["tables"] & string>(
         tableName: TableName
-    ): QueryBuilder<
+    ): Query<
         DB, Name, Columns, SelectedKeys, JoinedTables & {
             [K in TableName]: DB["tables"][K] extends Table<any, infer Columns>
             ? Columns
@@ -298,7 +308,7 @@ export class QueryBuilder<
         | `COUNT(*) AS ${string}`
     )[]>(
         ...columns: Keys
-    ): QueryBuilder<DB, Name, Columns, Keys, JoinedTables>
+    ): Query<DB, Name, Columns, Keys, JoinedTables>
 
     /**
      * Chọn các cột từ bảng cho câu lệnh truy vấn distinct
@@ -319,7 +329,7 @@ export class QueryBuilder<
         | `COUNT(*) AS ${string}`
     )[]>(
         ...columns: Keys
-    ): QueryBuilder<DB, Name, Columns, Keys, JoinedTables>
+    ): Query<DB, Name, Columns, Keys, JoinedTables>
 
     /**
      * Đặt điều kiện where cho câu lệnh truy vấn
