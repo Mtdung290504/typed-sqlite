@@ -60,3 +60,31 @@ Query:
 
 DML:
     INSERT, UPDATE, DELETE
+
+
+
+
+NOTE THỬ NGHIỆM:
+1. Alias có thể viết tắt bằng cách bỏ AS, ví dụ: 'select c.pin p, c.balance b from cards c;'
+2. SQL mặc định có chế độ ONLY_FULL_GROUP_BY, khi select cột đồng thời với các hàm tổng hợp như SUM, AVG,... sẽ bị lỗi 1140
+    lỗi: 'select c.pin p, c.balance b, count(pin) from cards c;'
+        Error Code: 1140. In aggregated query without GROUP BY, 
+            expression #1 of SELECT list contains nonaggregated column 'atm_db_s2.c.pin'; 
+                this is incompatible with sql_mode=only_full_group_by
+    fix: 'select c.pin p, c.balance b, count(pin) from cards c group by c.pin, c.balance;' (bổ sung group by)
+    lý giải: Mệnh đề GROUP BY trong SQL được sử dụng để:
+        Nhóm các bản ghi có giá trị giống nhau trên một hoặc nhiều cột.
+        Các hàm tổng hợp có thể áp dụng lên các nhóm đã chia.
+        Vì vậy khi dùng group by sẽ có các nhóm được chia ra để hàm tổng hợp được áp dụng lên đó.
+        Khi không có GROUP BY, SQL không biết cách xử lý dữ liệu theo nhóm. 
+            Do đó, các cột không được tổng hợp (c.pin, c.balance) sẽ gây ra xung đột với chế độ ONLY_FULL_GROUP_BY.
+3. Khi truy vấn có *, có một số quy tắc:
+    * phải ở đầu, nếu có cột nào trước * sẽ bị syntax error.
+    * không thể dùng alias
+    Khi select * có thêm bất kỳ cột nào phía sau, kết quả trả về sẽ là tất cả các cột của bảng và bổ sung thêm các cột select phía sau.
+        Trong trường hợp trùng tên cột, khi đổi thành đối tượng sẽ bị bỏ bớt, nếu dùng alias thì giữ được.
+4. Khi alias tên bảng, không dùng được tên bảng gốc nữa.
+5. Khi alias tên cột, nó chỉ ảnh hưởng đến kết quả truy vấn, sử dụng trong mệnh đề where sẽ lỗi.
+6. Thêm chức năng select from subquery, bắt buộc subquery sau from phải có alias.
+7. Subquery nằm giữa select và from bắt buộc trả về 1 hàng 1 cột, không bắt buộc alias.
+8. Muốn dùng having thì bắt buộc phải có group by trước đó

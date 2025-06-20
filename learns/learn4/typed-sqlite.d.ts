@@ -64,15 +64,15 @@ export class Table<Name extends string, Columns extends Record<string, ColumnDef
         metadata: { version: number, name: Name },
         columns: Columns,
         createOptions?: HasPrimaryKey<Columns> extends true
-            ? { createIfNotExist?: true | undefined; withoutRowId?: true | undefined }
-            : { createIfNotExist?: true | undefined }
+            ? { createIfNotExist?: true; withoutRowId?: true }
+            : { createIfNotExist?: true }
     )
 }
 
 export class Database<Tables extends Table<any, any>[]> {
     /** Tất cả các bảng */
     tables: {
-        [K in Tables[number]as K["name"]]: K;
+        [K in Tables[number] as K["name"]]: K;
     };
 
     sqliteDb: sqlite3.Database;
@@ -142,7 +142,7 @@ type TypeMappingMap<T extends Types> = {
     "INTEGER": number
     "REAL": number
     "TEXT": string
-    "BLOB": Blob
+    "BLOB": Buffer
 }[T]
 
 /**Kiểu ánh xạ cột sang JS */
