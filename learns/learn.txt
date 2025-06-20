@@ -11,7 +11,7 @@ Join bảng:
     INNER JOIN
     LEFT JOIN (LEFT OUTER JOIN)
     CROSS JOIN (*không có điều kiện ON)
-    Không hỗ trợ trực tiếp RIGHT JOIN (LEFT OUTER JOIN) & FULL JOIN (FULL OUTER JOIN) 
+    Không hỗ trợ trực tiếp RIGHT JOIN (RIGHT OUTER JOIN) & FULL JOIN (FULL OUTER JOIN) 
         (vì có giải pháp viết truy vấn thay thế, không thực sự cần thiết 2 loại JOIN trên)
 
 Toán tử tập hợp:
